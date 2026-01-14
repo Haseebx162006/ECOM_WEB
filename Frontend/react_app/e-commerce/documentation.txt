@@ -1,0 +1,1243 @@
+E-Commerce Website - Complete Documentation
+
+
+  Table of Contents
+1.	Project Overview
+2.	System Architecture
+3.	Database Schema
+4.	Module Breakdown
+5.	API Endpoints
+6.	Frontend Components
+7.	Payment Integration
+8.	Admin Dashboard
+9.	Security Considerations
+10.	Setup & Deployment
+
+
+
+
+Project Overview
+
+What is this?
+A full-featured e-commerce platform where customers can browse products, add to cart, checkout, and make purchases. Sellers can manage inventory, and admins can manage the entire platform.
+
+Key Features
+•	Product Catalog - Browse products with filters, search, categories
+ 
+•	Shopping Cart - Add/remove items, quantity management
+•	Checkout - Shipping, taxes, order summary
+•	Payment Processing - Stripe/PayPal integration
+•	Order Management - Track orders, order history
+•	User Accounts - Registration, profile, wishlist
+•	Reviews & Ratings - Product ratings and customer reviews
+•	Inventory Management - Stock tracking, low stock alerts
+•	Admin Dashboard - Sales analytics, product management
+•	Seller Dashboard - Inventory, sales, analytics
+
+Tech Stack (Recommended)
+•	Frontend: React + Next js + Tailwind CSS
+•	Backend: FastAPI (Python) or Node js/Express
+•	Database: PostgreSQL
+•	Payment: Stripe API / PayPal
+•	Storage: AWS S3 / Cloudinary
+•	Caching: Redis
+•	Hosting: Vercel (frontend), Railway/Render (backend)
+
+
+Target Users
+•	Customers (browse and buy products)
+•	Sellers (manage store and inventory)
+•	Admins (manage platform)
+
+
+ 
+System Architecture
+
+Architecture Overview
+The system follows a three-tier architecture: Presentation Layer (Frontend)
+•	React application for customer-facing website
+•	Admin dashboard for platform management
+•	Seller dashboard for inventory and sales management
+•	Responsive design for mobile and desktop
+
+Application Layer (Backend)
+
+•	REST API built with FastAPI or Express
+•	Handles all business logic
+•	Manages authentication and authorization
+•	Processes payments and orders
+
+Data Layer (Database)
+
+•	PostgreSQL for relational data
+•	Redis for caching and sessions
+•	AWS S3 for image storage
+
+
+Data Flow
+1.	User interacts with frontend (React)
+2.	Frontend makes API calls to backend
+ 
+3.	Backend validates data and enforces business logic
+4.	Backend queries database and returns results
+5.	Frontend displays data to user
+
+External Services
+•	Stripe/PayPal: Payment processing
+•	AWS S3: Product image storage
+•	Email Service: Order confirmations, notifications
+•	SMS Service (optional): Order updates via SMS
+
+
+
+
+Database Schema
+
+Core Tables Users Table
+•	Stores customer, seller, and admin accounts
+•	Fields: email, password, first name, last name, phone, profile picture, role (customer/seller/admin)
+•	For sellers: seller name, description, rating
+•	Tracks: email verification status, active status, creation date
+
+Categories Table
+
+•	Organizes products into categories
+•	Supports parent-child relationships (subcategories)
+•	Fields: name, slug, description, icon/image
+•	Tracks hierarchy and visibility
+ 
+Products Table
+
+•	Core product information
+•	Fields: name, description, price, discount %, stock quantity, SKU
+•	Links to seller and category
+•	Tracks: rating (aggregate), review count, availability status
+•	Image references (multiple images per product)
+
+Product Images Table
+
+•	Stores multiple images per product
+•	Fields: image URL, alt text, display order
+•	One primary image for catalog display
+
+Cart Table
+
+•	Temporary storage of items user wants to buy
+•	Links user to product with quantity
+•	One entry per user-product combination
+•	Tracks when item added and last updated
+
+Orders Table
+
+•	Final order record after checkout
+•	Fields: order number, user reference, total amount, status
+•	Stores: subtotal, tax, shipping, discount breakdown
+•	Payment information: method, status (paid/unpaid), tracking
+•	Address references (shipping and billing)
+ 
+Order Items Table
+
+•	Line items in each order
+•	Links order to products purchased
+•	Stores: quantity, price at time of purchase (price may change)
+•	Seller reference (for multi-vendor tracking)
+
+Reviews Table
+
+•	Customer feedback on products
+•	Fields: rating (1-5), title, comment, verified purchase flag
+•	Tracks helpfulness voting
+•	Links to user and product
+
+Wishlist Table
+
+•	Users' favorite products for future purchase
+•	Tracks items saved by each user
+•	Date added for analytics
+
+Addresses Table
+
+•	Stores multiple addresses per user
+•	Supports both shipping and billing addresses
+•	Fields: street, city, state, zip, country
+•	Marks default addresses for quick checkout
+
+Payments Table
+
+•	Records payment transactions
+ 
+•	Links to orders
+•	Stores: payment method, transaction ID, amount, status
+•	Tracks refunds and payment history
+
+Inventory/Stock Transactions Table
+
+•	Audit trail of stock changes
+•	Why stock changed (sale, return, restock, adjustment)
+•	Before/after quantities
+•	Seller reference (for seller-specific tracking)
+
+
+
+
+Module Breakdown
+
+Module 1: Authentication & User Management
+Purpose: Handle user registration, login, account management
+Key Features:
+
+•	User registration with email verification
+•	Login with JWT tokens
+•	Password reset functionality
+•	Profile management (update name, phone, picture)
+•	Role-based access (customer, seller, admin)
+•	Account security (change password, 2FA optional) User Workflows:
+ 
+•	New user registration —+ email verification —+ login
+•	Existing user login —r dashboard redirect
+•	Seller signup —r additional seller info —r approval
+•	Admin assignment —› special permissions
+
+Database Relationships:
+
+•	Users table is the central hub
+•	Users linked to: orders, reviews, cart, wishlist, products (for sellers), addresses
+
+
+
+Module 2: Product Management
+Purpose: Manage product catalog and inventory Key Features:
+•	Create/update/delete products (sellers)
+•	Bulk product upload
+•	Product categorization and subcategories
+•	Pricing and discount management
+•	Stock tracking with low-stock alerts
+•	Product status (active, inactive, discontinued)
+•	Variant support (size, color, etc - optional)
+•	Product search and filtering
+
+Seller Capabilities:
+
+•	Add new products with descriptions and images
+ 
+•	Set pricing and manage discounts
+•	Monitor stock levels
+•	Upload multiple images
+•	Manage product visibility
+
+Admin Capabilities:
+
+•	Approve/reject products
+•	Set commission rates
+•	Monitor all products
+•	Handle disputes
+
+Database Relationships:
+
+•	Products —+ Categories (many-to-one)
+•	Products —• Users/Sellers (many-to-one)
+•	Products —+ Images (one-to-many)
+•	Products —• Inventory/Stock (one-to-one tracking)
+
+
+
+Module 3: Shopping Cart & Wishlist
+Purpose: Manage items user wants to buy or save for later
+Key Features:
+
+•	Add products to cart with quantity
+•	Update quantity or remove items
+•	Cart persistence (saved across sessions)
+ 
+•	Wishlist functionality (save for later)
+•	Cart sharing/recovery (if user loses session)
+•	Price recalculation based on current prices
+•	Out-of-stock detection before checkout
+•	Cart preview/mini cart in header
+
+Cart Logic:
+
+•	Check product availability before adding
+•	Prevent duplicate entries (increment quantity instead)
+•	Allow quantity changes with stock validation
+•	Empty cart after successful checkout
+•	Cart expiration (optional - clear old carts)
+
+Wishlist Features:
+
+•	Save products for future purchase
+•	Share wishlist with others
+•	Move items from wishlist to cart
+•	Receive notifications for price drops
+
+Database Relationships:
+
+•	Cart —r Users (one-to-many)
+•	Cart —› Products (many-to-one)
+•	Wishlist —› Users (one-to-many)
+•	Wishlist —• Products (many-to-one)
+
+
+ 
+Module 4: Checkout & Orders
+Purpose: Handle order creation and management Key Features:
+•	Shopping cart review
+•	Shipping address entry/selection
+•	Billing address (same as shipping or different)
+•	Shipping method selection with costs
+•	Tax calculation based on location
+•	Order summary with breakdown
+•	Order confirmation with order number
+•	Order tracking and status updates
+•	Order cancellation (if not shipped)
+•	Return/refund request workflow
+
+Checkout Process:
+
+1.	Review cart items and prices
+2.	Enter or select shipping address
+3.	Select shipping method (standard, express, etc)
+4.	Review tax and final total
+5.	Enter payment information
+6.	Process payment
+7.	Create order record
+8.	Send confirmation email
+ 
+Order Statuses:
+
+•	Pending: Awaiting payment confirmation
+•	Confirmed: Payment received, preparing to ship
+•	Shipped: In transit with tracking number
+•	Delivered: Received by customer
+•	Cancelled: Order cancelled by user or admin
+•	Refunded: Refund processed
+
+Database Relationships:
+
+•	Orders —+ Users (many-to-one)
+•	Orders —• Addresses (many-to-one, for shipping and billing)
+•	Orders —› Payments (one-to-one)
+•	Orders —+ Order Items (one-to-many)
+•	Order Items —r Products (many-to-one)
+
+
+
+Module 5: Payment Processing
+Purpose: Handle payment transactions securely
+Key Features:
+
+•	Stripe integration (card payments)
+•	PayPal integration
+•	Support for multiple currencies
+•	PCI compliance (outsource to payment provider)
+•	Payment validation
+ 
+•	Refund processing
+•	Failed payment handling and retries
+•	Payment confirmation and receipts
+•	Webhook handling (payment status updates)
+
+Payment Flow:
+
+1.	User enters payment details in frontend
+2.	Frontend sends to payment provider (Stripe/PayPal)
+3.	Payment provider returns token/authorization
+4.	Backend validates token with payment provider
+5.	Backend creates payment record
+6.	Backend initiates order fulfillment
+7.	Send payment confirmation email
+
+Security Measures:
+
+•	Never handle raw card details on backend
+•	Use payment provider's tokenization
+•	Validate all payments on backend
+•	Store payment method details securely
+•	Implement webhook verification
+
+Database Relationships:
+
+•	Payments —r Orders (one-to-one)
+•	Payments —› Users (many-to-one)
+
+
+ 
+Module 6: Reviews & Ratings
+Purpose: Allow customers to review and rate products Key Features:
+•	Submit product reviews with 1-5 star rating
+•	Verified purchase badge (only verified buyers can review)
+•	Helpful/unhelpful voting on reviews
+•	Admin moderation of reviews (remove inappropriate)
+•	Average rating calculation
+•	Review photos (optional)
+•	Review sorting (newest, most helpful, highest rated)
+•	Review filtering
+
+Review Data:
+
+•	Rating (1-5 stars)
+•	Title and comment
+•	Verification that user purchased product
+•	Helpful/unhelpful count
+•	Creation date
+
+Moderation:
+
+•	Flag inappropriate reviews
+•	Admin review and approve/reject
+•	Remove spam or fake reviews
+ 
+•	Block users with multiple rejected reviews Analytics:
+•	Average rating per product
+•	Review count per product
+•	Rating distribution (how many 5-star, 4-star, etc)
+•	Most helpful reviews featured
+
+Database Relationships:
+
+•	Reviews —+ Products (many-to-one)
+•	Reviews —› Users (many-to-one)
+•	Reviews —• Orders (to verify purchase)
+
+
+
+Module 7: Admin Dashboard
+Purpose: Platform management and analytics Key Features:
+•	Sales dashboard with total revenue, order count
+•	Product management (approve, reject, suspend)
+•	User management (customers, sellers, admins)
+•	Order management (view all orders, manage refunds)
+•	Category management
+•	Commission/payment management for sellers
+•	Analytics and reports
+ 
+•	Seller verification and approval
+•	Dispute resolution
+•	System settings and configuration
+
+Admin Views:
+
+•	Dashboard: KPIs and quick stats
+•	Orders: All orders with filtering and search
+•	Products: Approve/reject seller products
+•	Users: Manage customers and sellers
+•	Sellers: Verify, approve, set commission rates
+•	Categories: Add, edit, organize
+•	Reports: Sales, inventory, customer data
+•	Settings: Tax rates, shipping methods, fees
+
+Key Metrics:
+
+•	Total revenue
+•	Order count (today, month, year)
+•	New users
+•	Product count
+•	Seller count
+•	Inventory status
+•	Return/refund rate
+
+
+ 
+Module 8: Seller Dashboard
+Purpose: Allow sellers to manage their products and sales Key Features:
+•	Product inventory management
+•	Sales analytics and reporting
+•	Order fulfillment
+•	Review management
+•	Customer communication
+•	Payout management
+•	Performance metrics
+
+Seller Views:
+
+•	Dashboard: Sales summary, pending orders
+•	Products: Add, edit, delete products
+•	Orders: View orders to fu1fi11
+•	Reviews: Respond to customer reviews
+•	Analytics: Sales trends, top products
+•	Settings: Store profile, payment info
+
+Seller Capabilities:
+
+•	Manage products (CRUD)
+•	Track inventory
+•	View orders assigned to them
+•	See customer reviews and respond
+ 
+•	Access sales analytics
+•	Manage payouts/bank details
+•	View performance metrics (rating, response time)
+
+
+Module 9: Notifications & Email
+Purpose: Keep users informed about orders and platform updates Key Features:
+•	Order confirmation emails
+•	Shipping notifications with tracking
+•	Delivery confirmation
+•	Review request emails
+•	Password reset emails
+•	Promotional emails (opt-in)
+•	Push notifications (optional)
+•	In-app notifications
+
+Email Triggers:
+
+•	User registration confirmation
+•	Password reset request
+•	Order confirmation
+•	Order shipped (with tracking)
+•	Order delivered
+•	Review reminder
+ 
+•	Review response notification
+•	Promotional emails Notification Types:
+•	Transactional (order updates, password reset)
+•	Promotional (sales, new products)
+•	System (maintenance, updates)
+
+Preferences:
+
+•	Users can opt-in/opt-out of email types
+•	Frequency preferences
+•	Channel preferences (email, SMS, push)
+
+
+
+Module 10: Search & Filtering
+Purpose: Help users find products easily
+Key Features:
+
+•	Full-text product search
+•	Filter by category, price range, rating
+•	Sort by relevance, price, newest, popularity
+•	Faceted search (multiple filters)
+•	Search suggestions and auto-complete
+•	Search history (optional)
+•	Advanced search filters
+ 
+•	Product comparison Search Functionality:
+•	Search by product name, description, SKU
+•	Instant results with pagination
+•	Highlight matching keywords
+•	Typo tolerance (did you mean)
+
+Filtering Options:
+
+•	Category (hierarchical)
+•	Price range slider
+•	Rating (3+ stars, 4+ stars, etc)
+•	Availability (in stock, out of stock)
+•	Brand/Seller
+•	Color, size, other variants
+•	New/Sale items
+
+Performance:
+
+•	Use search index (Elasticsearch optional)
+•	Cache popular searches
+•	Pagination for large result sets
+
+
+
+Module 11: Analytics & Reporting
+Purpose: Provide insights into business performance
+ 
+Admin Analytics:
+
+•	Total sales and revenue
+•	Order trends (daily, monthly, yearly)
+•	Top selling products
+•	Top sellers
+•	Customer acquisition cost
+•	Conversion rate
+•	Average order value
+•	Return rate
+•	Product performance
+
+Seller Analytics:
+
+•	Their sales and revenue
+•	Order count and trends
+•	Top products
+•	Customer reviews and ratings
+•	Refund/return rate
+
+Customer Analytics:
+
+•	Browse history
+•	Purchase history
+•	Favorite categories
+•	Saved items
+•	Personalized recommendations
+ 
+ 
+
+API Endpoints
+
+Authentication Endpoints
+•	Register new user with email verification
+•	Login with email and password
+•	Refresh authentication token
+•	Logout and session cleanup
+•	Password reset request
+•	Change password (authenticated users)
+•	Verify email address
+•	Update profile information
+
+
+Product Endpoints
+•	Get all products with pagination
+•	Get product by ID with full details
+•	Search products by query
+•	Filter products by category, price, rating
+•	Get products by seller
+•	Get trending products
+•	Get featured products
+•	Create product (seller)
+•	Update product details (seller)
+•	Delete product (seller)
+ 
+•	Get product images
+•	Upload product image
+
+Category Endpoints
+•	Get all categories
+•	Get category by ID
+•	Get products in category
+•	Get category hierarchy (parent-child)
+
+
+Cart Endpoints
+•	Get current user's cart
+•	Add product to cart
+•	Remove product from cart
+•	Update item quantity in cart
+•	Clear entire cart
+•	Get cart summary (total, item count)
+•	Check product availability for cart items
+
+
+Checkout Endpoints
+•	Validate cart before checkout
+•	Apply coupon/discount code
+•	Calculate shipping cost
+•	Calculate tax
+•	Get checkout summary
+•	Create order from cart
+ 
+•	Get order confirmation
+
+Payment Endpoints
+•	Create payment intent (Stripe)
+•	Confirm payment
+•	Get payment status
+•	Process refund
+•	Get payment history
+
+
+Order Endpoints
+•	Get user's orders
+•	Get order by ID with details
+•	Get order status
+•	Update order status (admin)
+•	Cancel order
+•	Request return/refund
+•	Track order with tracking number
+•	Get order invoice
+
+
+Review Endpoints
+•	Get product reviews
+•	Create product review (verified buyers)
+•	Update own review
+•	Delete own review
+•	Vote review as helpful/unhelpful
+ 
+•	Get review statistics
+•	Admin: moderate reviews
+
+Wishlist Endpoints
+•	Get user's wishlist
+•	Add product to wishlist
+•	Remove product from wishlist
+•	Move wishlist item to cart
+
+
+User Endpoints
+•	Get user profile
+•	Update user profile
+•	Get user addresses
+•	Add address
+•	Update address
+•	Delete address
+•	Get user preferences
+•	Update notification preferences
+
+
+Seller Endpoints
+•	Get seller profile
+•	Update seller profile
+•	Get seller products
+•	Get seller statistics
+•	Get seller orders
+ 
+•	Get seller reviews
+•	Get payout information
+•	Request payout
+
+
+Admin Endpoints
+•	Get all orders
+•	Get all products
+•	Get all users
+•	Get all sellers
+•	Approve/reject products
+•	Suspend/unsuspend user
+•	Verify seller
+•	Get analytics dashboard
+•	Get sales reports
+•	Manage categories
+•	Set commission rates
+
+
+
+
+Frontend Components
+
+Pages & Layouts Home Page
+•	Hero banner with featured products
+•	Category showcase
+•	Best-selling products carousel
+ 
+•	New arrivals section
+•	Promotional banners
+•	Customer testimonials
+•	Newsletter subscription form
+
+Product Listing Page
+
+•	Product grid/list view toggle
+•	Filter sidebar (category, price, rating)
+•	Sort dropdown (relevance, price, newest)
+•	Pagination
+•	Product cards with basic info
+•	Search bar
+•	Number of results display
+•	Active filters display
+
+Product Detail Page
+
+•	Large product image with zoom
+•	Image gallery/thumbnail carousel
+•	Product name, price, discount
+•	Star rating and review count
+•	Stock availability indicator
+•	Add to cart button
+•	Add to wishlist button
+•	Product description
+•	Specifications table
+ 
+•	Customer reviews section
+•	Related products carousel
+•	Seller information
+
+Shopping Cart Page
+
+•	Cart items list with product image, name, price
+•	Quantity selector for each item
+•	Remove item button
+•	Stock availability check
+•	Update cart button
+•	Cart summary: subtotal, tax, total
+•	Proceed to checkout button
+•	Continue shopping button
+•	Promotional code input
+
+Checkout Page
+
+•	Multi-step form (address, shipping, payment)
+•	Shipping address: enter new or select existing
+•	Billing address: same as shipping toggle
+•	Shipping method selection with costs
+•	Order summary with item breakdown
+•	Tax calculation display
+•	Payment method selection (card, PayPal)
+•	Payment form
+•	Place order button
+ 
+•	Order confirmation message with order number Order Confirmation Page
+•	Order number and date
+•	Order summary (items, quantities, prices)
+•	Shipping address
+•	Estimated delivery date
+•	Order status
+•	Continue shopping button
+•	Download invoice button
+
+Order History Page
+
+•	List of user's orders
+•	Columns: order number, date, items, total, status
+•	Search orders by order number
+•	Filter by status
+•	Click to view details
+•	Cancel order button (if applicable)
+•	Track order button
+
+Order Detail Page
+
+•	Order number, date, total
+•	List of items ordered
+•	Shipping address and method
+•	Expected delivery date
+ 
+•	Current order status with timeline
+•	Tracking number with link to carrier
+•	Contact seller button
+•	Return/refund request button
+•	Download invoice button
+
+Product Reviews Page
+
+•	Sort reviews by helpful, recent, highest rated
+•	Filter by rating (5 stars, 4 stars, etc)
+•	Review cards: rating, title, comment, author, date
+•	Helpful/unhelpful voting buttons
+•	Write review button (if customer)
+•	Photo reviews display
+
+User Account Page
+
+•	Profile information: name, email, phone
+•	Edit profile button
+•	Change password section
+•	Address book with add/edit/delete
+•	Wishlist items
+•	Notification preferences
+•	Account security settings
+
+Wishlist Page
+
+•	Grid/list of saved items
+ 
+•	Product cards with price and availability
+•	Move to cart button
+•	Remove from wishlist button
+•	Share wishlist link
+•	Sort and filter options Seller Dashboard
+•	Sales summary (total revenue, orders)
+•	Revenue chart
+•	Top selling products
+•	Pending orders list
+•	Recent reviews
+•	Navigation to product management, orders, reviews, analytics
+
+Admin Dashboard
+
+•	Key metrics cards (revenue, orders, users, products)
+•	Sales trend chart
+•	Top products/sellers
+•	Recent orders
+•	Pending approvals
+•	System health status
+•	Navigation to all management sections
+
+
+Common Components
+Navbar
+ 
+•	Logo/brand link to home
+•	Search bar
+•	Category dropdown
+•	Cart icon with item count
+•	User account menu (login/register or profile)
+•	Wishlist icon
+•	Mobile hamburger menu
+
+Footer
+
+•	Company information
+•	Quick links (categories, policies)
+•	Customer service links
+•	Newsletter signup
+•	Social media links
+•	Copyright and legal links
+•	Payment method icons
+
+Product Card
+
+•	Product image
+•	Product name
+•	Price (with original price crossed out if discounted)
+•	Star rating and review count
+•	Quick view button
+•	Add to cart button
+•	Add to wishlist button
+ 
+•	Badge (new, sale, trending)
+
+Filter Sidebar
+
+•	Category checkboxes
+•	Price range slider
+•	Rating filter (stars)
+•	Other filters based on category
+•	Apply/clear filters buttons
+•	Filter count badge
+
+Pagination
+
+•	Previous/next buttons
+•	Page number buttons
+•	Jump to page input
+•	Items per page selector
+•	Current page indicator
+
+Rating Stars
+
+•	5-star visual display
+•	Show half-stars for decimals
+•	Click to rate (for reviews)
+•	Hover effect on interactive ratings
+•	Display average rating Modal/Dialog
+ 
+•	Reusable modal for confirmations
+•	Add to cart confirmation
+•	Remove item confirmation
+•	Login required dialog
+•	Image zoom modal
+
+Loading States
+
+•	Skeleton screens for product lists
+•	Spinner for async operations
+•	Progress bar for multi-step forms
+
+Error Messages
+
+•	Toast notifications for errors and success
+•	Form validation messages
+•	Network error fallback
+•	404/500 error pages
+
+Buttons
+
+•	Primary button (add to cart, checkout)
+•	Secondary button (cancel, continue shopping)
+•	Danger button (delete, cancel order)
+•	Button with loading state
+•	Disabled button state
+
+
+ 
+Payment Integration
+
+Stripe Integration Payment Flow:
+1.	User enters payment details in checkout
+2.	Frontend creates payment intent with Stripe
+3.	Stripe returns client secret
+4.	Frontend confirms payment with user's card details
+5.	Stripe processes payment and returns status
+6.	Frontend sends order creation request to backend with payment confirmation
+7.	Backend verifies payment with Stripe
+8.	Backend creates order record
+9.	Order confirmation sent to user
+
+Key Features:
+
+•	Supports card payments (credit, debit)
+•	3D Secure for fraud prevention
+•	Recurring payments for subscriptions (if added later)
+•	Webhooks for payment status updates
+•	Refund processing
+•	Payment history tracking
+
+Security:
+
+•	Never handle raw card details on backend
+•	Use Stripe elements for secure input
+ 
+•	Verify payments on backend using payment intent ID
+•	Implement webhook signature verification
+
+
+PayPal Integration (Optional)
+Alternative payment method:
+
+•	User is redirected to PayPal for authentication
+•	PayPal returns authorization token
+•	Backend exchanges token for payment confirmation
+•	Order created upon successful payment
+
+
+
+
+Admin Dashboard
+
+Key Sections
+Dashboard Overview
+•	KPI cards with main metrics
+•	Revenue and order trend charts
+•	Top selling products widget
+•	Recent orders list
+•	Pending seller approvals
+
+Order Management
+
+•	View all orders with filtering
+•	Order status management
+ 
+•	Order details view
+•	Refund/return processing
+•	Order search and export
+
+Product Management
+
+•	View all products
+•	Approve/reject seller products
+•	Edit product details
+•	Manage product categories
+•	Suspend/activate products
+•	Bulk operations
+
+User Management
+
+•	View all customers
+•	View all sellers
+•	Verify sellers
+•	Block/unblock users
+•	View user activity
+•	Manage user roles
+
+Category Management
+
+•	Create, edit, delete categories
+•	Manage category hierarchy
+•	Feature categories
+•	Category ordering
+ 
+Seller Management
+
+•	Verify and approve sellers
+•	Set commission rates
+•	Monitor seller performance
+•	Handle seller disputes
+•	Manage payouts
+
+Analytics & Reports
+
+•	Sales reports by date range
+•	Product performance reports
+•	Seller performance reports
+•	Customer analytics
+•	Inventory reports
+•	Revenue by category
+•	Export reports
+
+Settings
+
+•	Tax rate configuration
+•	Shipping method setup
+•	Commission rate settings
+•	Payment method configuration
+•	Email template setup
+•	System notifications
+
+
+ 
+Security Considerations
+
+Authentication & Authorization
+•	Use JWT tokens for API authentication
+•	Implement role-based access control (customer, seller, admin)
+•	Secure password hashing with bcrypt
+•	Email verification for new accounts
+•	Password reset with time-limited tokens
+•	Optional 2FA for admin accounts
+•	Session management and timeout
+
+
+Payment Security
+•	Never store raw card details
+•	Use PCI-compliant payment processors (Stripe, PayPal)
+•	Validate all payments on backend
+•	Implement webhook signature verification
+•	Encrypt sensitive payment information
+•	Use HTTPS for all payment transactions
+
+
+Data Protection
+•	Encrypt sensitive data (passwords, payment tokens)
+•	SQL injection prevention with parameterized queries
+•	XSS protection with input sanitization
+•	CSRF token protection on forms
+•	Rate limiting on API endpoints
+ 
+•	Input validation on all endpoints
+
+
+Multi-Vendor Security
+•	Sellers can only modify their own products
+•	Sellers can only see their own orders and payouts
+•	Admins have access to all data
+•	Database-level access control
+
+
+Infrastructure Security
+•	HTTPS/TLS for all communications
+•	Environment variables for secrets
+•	Database password rotation
+•	Regular security audits
+•	Backup and disaster recovery
+•	Monitoring and logging
+•	Firewall and DDoS protection
+
+
+
+
+Setup & Deployment
+
+Backend Setup (FastAPI) Local Development:
+1.	Create project directory and virtual environment
+2.	Install dependencies (FastAPI, SQLAlchemy, psycopg2, Stripe SDK, etc)
+ 
+3.	Create database and run migrations
+4.	Set up environment variables
+5.	Start development server with auto-reload
+6.	Test endpoints with Swagger UI
+
+Database Setup:
+1.	Create PostgreSQL database
+2.	Create tables with proper relationships
+3.	Create indexes for performance
+4.	Set up backup strategy
+
+Configuration:
+
+•	Environment variables for API keys (Stripe, AWS, email service)
+•	Database connection string
+•	CORS settings for frontend domain
+•	JWT secret key
+•	File upload configuration
+
+Local Testing:
+
+•	Unit tests for business logic
+•	Integration tests for API endpoints
+•	Test with sample data
+
+
+Frontend Setup (React/Next.js)
+Local Development:
+ 
+1.	Create React project with Vite or Next.js
+2.	Install dependencies (Axios, React Router, Tailwind, etc)
+3.	Set up environment variables
+4.	Create folder structure
+5.	Start development server
+6.	Hot reload for development
+
+Configuration:
+
+•	API base URL (environment variable)
+•	Stripe public key
+•	App name and branding
+•	Feature flags
+
+Testing:
+
+•	Component tests
+•	Integration tests with mocked API
+•	E2E tests for critical flows
+
+
+Deployment Frontend (Vercel):
+•	Connect GitHub repository
+•	Set environment variables in Vercel
+•	Automatic deployment on push
+•	Custom domain configuration
+•	SSL certificate automatic
+ 
+Backend (Railway/Render):
+
+•	Connect GitHub repository
+•	Create PostgreSQL database
+•	Set environment variables
+•	Automatic deployment on push
+•	Domain and SSL setup
+
+Database (Cloud Provider):
+
+•	Use managed PostgreSQL service
+•	Configure backup and replication
+•	Set up monitoring
+•	Configure firewall rules
+
+External Services:
+
+•	Stripe account setup
+•	AWS S3 bucket for images
+•	Email service (SendGrid, Gmail SMTP)
+•	Domain registration and DNS
+
+
+
+
+Development Timeline
+
+Week 1-2: Foundation
+•	Setup backend and database
+ 
+•	Setup frontend project
+•	Implement authentication module
+•	Create login/register pages
+
+Week 3-4: Product & Catalog
+•	Build product management module
+•	Create product listing page
+•	Product detail page
+•	Search and filtering
+
+
+Week 5-6: Shopping Cart & Checkout
+•	Implement cart module
+•	Build cart page
+•	Checkout flow
+•	Address management
+
+
+Week 7-8: Payment & Orders
+•	Stripe integration
+•	Payment processing
+•	Order creation and confirmation
+•	Order management
+
+
+Week 9-10: Reviews & Additional Features
+•	Reviews and ratings module
+•	Wishlist functionality
+ 
+•	Admin dashboard
+•	Seller dashboard
+
+
+Week 11-12: Testing & Deployment
+•	Comprehensive testing
+•	Bug fixes and optimization
+•	Security audit
+•	Deployment to production
+
+
+
+
+Success Metrics
+•	Page load time < 2 seconds
+•	99.9% payment success rate
+•	Order fulfillment within 24 hours
+•	Customer satisfaction > 4.5 stars
+•	Zero critical security issues
+•	Support response time < 24 hours
+
+
+
+This complete e-commerce documentation provides everything needed to build a professional, scalable online store.
