@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import './Footer.css';
+import logo from '../../assets/logo.svg';
 
 function Footer() {
   const [email, setEmail] = useState('');
@@ -20,8 +21,7 @@ function Footer() {
         {/* Company Info */}
         <div className="footer-section">
           <div className="footer-logo">
-            <span className="logo-icon">E</span>
-            <span className="logo-text">e-com</span>
+            <img src={logo} alt="Company Logo" className="logo-image" />
           </div>
           <p className="footer-description">
             Your one-stop shop for quality products at amazing prices. 
