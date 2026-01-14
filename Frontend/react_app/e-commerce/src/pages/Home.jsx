@@ -1,7 +1,46 @@
 import React from 'react';
 import './Home.css';
+import ProductCard from '../components/common/ProductCard';
+import ProductMoments from '../components/home/ProductMoments';
 
 function Home() {
+  // Sample product data
+  const featuredProducts = [
+    {
+      id: 1,
+      name: 'Wireless Headphones',
+      price: 89.99,
+      originalPrice: 129.99,
+      rating: 4.8,
+      reviewCount: 234,
+      badge: 'Sale'
+    },
+    {
+      id: 2,
+      name: 'Smart Watch Pro',
+      price: 299.99,
+      rating: 4.7,
+      reviewCount: 189,
+      badge: 'New'
+    },
+    {
+      id: 3,
+      name: 'Bluetooth Speaker',
+      price: 49.99,
+      originalPrice: 79.99,
+      rating: 4.6,
+      reviewCount: 456,
+      badge: 'Trending'
+    },
+    {
+      id: 4,
+      name: 'Premium Sneakers',
+      price: 84.00,
+      rating: 4.7,
+      reviewCount: 89
+    }
+  ];
+
   return (
     <div className="home-page">
       {/* Hero Section */}
@@ -48,6 +87,9 @@ function Home() {
         </div>
       </section>
 
+      {/* Product Moments - Animated Slider */}
+      <ProductMoments />
+
       {/* Popular Categories Section */}
       <section className="categories-section">
         <div className="section-header">
@@ -85,25 +127,8 @@ function Home() {
           <a href="#" className="view-all-link">View All →</a>
         </div>
         <div className="products-grid">
-          {[1, 2, 3, 4].map((item) => (
-            <div key={item} className="product-card">
-              <div className="product-image">
-                <span className="product-placeholder">📦</span>
-                <button className="wishlist-btn">❤️</button>
-              </div>
-              <div className="product-info">
-                <h3>Product Name {item}</h3>
-                <div className="product-rating">
-                  <span>⭐⭐⭐⭐⭐</span>
-                  <span className="rating-count">(45)</span>
-                </div>
-                <div className="product-price">
-                  <span className="current-price">$99.99</span>
-                  <span className="original-price">$129.99</span>
-                </div>
-                <button className="add-to-cart-btn">Add to Cart</button>
-              </div>
-            </div>
+          {featuredProducts.map((product) => (
+            <ProductCard key={product.id} product={product} />
           ))}
         </div>
       </section>
