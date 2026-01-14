@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 260 56" width="260" height="56">
+  <defs>
+    <!-- Premium Purple-Blue Gradient -->
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#6366F1"/>
+      <stop offset="50%" style="stop-color:#8B5CF6"/>
+      <stop offset="100%" style="stop-color:#A855F7"/>
+    </linearGradient>
+    <!-- Soft Gold Accent -->
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FBBF24"/>
+      <stop offset="100%" style="stop-color:#F59E0B"/>
+    </linearGradient>
+  </defs>
+  
+  <!-- Abstract "C" Mark with Shopping Bag Silhouette -->
+  <g transform="translate(4, 4)">
+    <!-- Outer rounded square (bag shape) -->
+    <rect x="2" y="10" width="38" height="36" rx="8" ry="8" fill="url(#brandGrad)"/>
+    <!-- Bag handles -->
+    <path d="M14 10 Q14 2, 21 2 Q28 2, 28 10" fill="none" stroke="url(#goldAccent)" stroke-width="3" stroke-linecap="round"/>
+    <!-- Stylized "C" cutout / negative space arrow pointing right -->
+    <path d="M26 20 L18 28 L26 36" fill="none" stroke="#FFFFFF" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- Small star sparkle -->
+    <circle cx="32" cy="18" r="2.5" fill="url(#goldAccent)"/>
+  </g>
+  
+  <!-- Wordmark -->
+  <text x="54" y="38" 
+        font-family="'Segoe UI', 'SF Pro Display', -apple-system, sans-serif" 
+        font-weight="700" 
+        font-size="30" 
+        letter-spacing="-1">
+    <tspan fill="#1E1B4B">Cart</tspan><tspan fill="url(#brandGrad)">opia</tspan>
+  </text>
+</svg>

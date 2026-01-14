@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Navbar.css';
+import logo from '../assets/logo.svg';
 
 function Navbar() {
   const [showCategories, setShowCategories] = useState(false);
@@ -33,7 +34,7 @@ function Navbar() {
 
     // Add event listener
     document.addEventListener('mousedown', handleClickOutside);
-    
+
     // Cleanup
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -45,20 +46,19 @@ function Navbar() {
       {/* Left Section - Logo & Categories */}
       <div className="navbar-left">
         <div className="logo">
-          <span className="logo-icon">HA</span>
-          <span className="logo-text">Cartopia</span>
+          <img src={logo} alt="Cartopia Logo" className="logo-image" />
         </div>
-        
+
         {/* Categories Dropdown */}
         <div className="categories-dropdown" ref={categoriesRef}>
-          <button 
+          <button
             className="categories-button"
             onClick={() => setShowCategories(!showCategories)}
           >
             <span>☰</span>
             <span>Categories</span>
           </button>
-          
+
           {showCategories && (
             <div className="dropdown-menu">
               {categories.map((category, index) => (
@@ -74,9 +74,9 @@ function Navbar() {
       {/* Center Section - Search Bar */}
       <div className="navbar-center">
         <div className="search-container">
-          <input 
-            type="text" 
-            placeholder="Search products..." 
+          <input
+            type="text"
+            placeholder="Search products..."
             className="search-input"
           />
           <button className="search-button">
@@ -91,23 +91,23 @@ function Navbar() {
         <button className="icon-button" title="Wishlist">
           <span>❤️</span>
         </button>
-        
+
         {/* Cart Icon with Count */}
         <button className="icon-button cart-button" title="Cart">
           <span>🛍️</span>
           {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
         </button>
-        
+
         {/* User Account Menu */}
         <div className="user-menu" ref={userMenuRef}>
-          <button 
+          <button
             className="user-profile"
             onClick={() => setShowUserMenu(!showUserMenu)}
           >
             <span className="user-name">Guest</span>
             <div className="user-avatar">👤</div>
           </button>
-          
+
           {showUserMenu && (
             <div className="dropdown-menu user-dropdown">
               <a href="#" className="dropdown-item">Login</a>
