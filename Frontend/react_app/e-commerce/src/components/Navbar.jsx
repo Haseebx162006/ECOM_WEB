@@ -45,8 +45,8 @@ function Navbar() {
       {/* Left Section - Logo & Categories */}
       <div className="navbar-left">
         <div className="logo">
-          <span className="logo-icon">E</span>
-          <span className="logo-text">e-com</span>
+          <span className="logo-icon">HA</span>
+          <span className="logo-text">Cartopia</span>
         </div>
         
         {/* Categories Dropdown */}
