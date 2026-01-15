@@ -1,7 +1,23 @@
 import axios from 'axios';
+import { mockProducts, mockCategories, promoCodes } from '../data/mockData';
+
+/**
+ * API Service with Axios
+ * 
+ * DEVELOPMENT MODE: Uses mock data internally
+ * PRODUCTION MODE: Switch to real backend by changing USE_MOCK_API flag
+ * 
+ * When backend is ready:
+ * 1. Set USE_MOCK_API = false
+ * 2. Update API_BASE_URL in .env (VITE_API_URL)
+ * 3. NO COMPONENT CHANGES NEEDED!
+ */
+
+// Toggle between mock and real API
+const USE_MOCK_API = true; // Set to false when backend is ready
 
 // Configure axios instance
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8000/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 
 const axiosInstance = axios.create({
   baseURL: API_BASE_URL,
@@ -11,10 +27,9 @@ const axiosInstance = axios.create({
   }
 });
 
-// Add request interceptor for auth token (when available)
+// Add request interceptor for auth token
 axiosInstance.interceptors.request.use(
   (config) => {
-    // Add token to headers if available
     const token = localStorage.getItem('authToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -29,7 +44,6 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Handle unauthorized access
       localStorage.removeItem('authToken');
       window.location.href = '/login';
     }
@@ -37,36 +51,95 @@ axiosInstance.interceptors.response.use(
   }
 );
 
-// API Service Object
-export const apiService = {
+// ==================== MOCK HELPERS ====================
+
+const API_DELAY = 200; // Simulate network delay (ms)
+const delay = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+const getCartFromStorage = () => {
+  const savedCart = localStorage.getItem('cartItems');
+  const parsed = savedCart ? JSON.parse(savedCart) : [];
+  return parsed.map(item => ({
+    productId: item.productId ?? item.id,
+    quantity: item.quantity ?? 1
+  }));
+};
+
+const saveCartToStorage = (cart) => {
+  const minimal = cart.map(item => ({
+    productId: item.productId ?? item.id,
+    quantity: item.quantity
+  }));
+  localStorage.setItem('cartItems', JSON.stringify(minimal));
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('cartUpdated'));
+  }
+};
+
+const expandCartItems = (storedCart) => {
+  return storedCart
+    .map(item => {
+      const product = mockProducts.find(p => p.id === (item.productId ?? item.id));
+      if (!product) return null;
+      return {
+        id: product.id,
+        productId: product.id,
+        name: product.name,
+        price: product.price,
+        image: product.image,
+        quantity: item.quantity,
+        stock: product.stock
+      };
+    })
+    .filter(Boolean);
+};
+
+// ==================== API SERVICE ====================
+export const api = {
   // ==================== PRODUCTS ====================
   
   /**
-   * Get featured products
-   * GET /api/products/featured
+   * Get all products with optional filtering
+   * GET /api/products
    */
-  getFeaturedProducts: async () => {
-    try {
-      const response = await axiosInstance.get('/products/featured');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching featured products:', error);
-      throw error;
-    }
-  },
+  getProducts: async (filters = {}) => {
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      let filtered = [...mockProducts];
 
-  /**
-   * Get new arrivals
-   * GET /api/products/new-arrivals
-   */
-  getNewArrivals: async () => {
-    try {
-      const response = await axiosInstance.get('/products/new-arrivals');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching new arrivals:', error);
-      throw error;
+      if (filters.category && filters.category !== 'All') {
+        filtered = filtered.filter(p => p.category === filters.category);
+      }
+      if (filters.minPrice !== undefined) {
+        filtered = filtered.filter(p => p.price >= filters.minPrice);
+      }
+      if (filters.maxPrice !== undefined) {
+        filtered = filtered.filter(p => p.price <= filters.maxPrice);
+      }
+      if (filters.minRating !== undefined) {
+        filtered = filtered.filter(p => (p.rating || 0) >= filters.minRating);
+      }
+
+      if (filters.sort) {
+        switch (filters.sort) {
+          case 'price-low':
+            filtered.sort((a, b) => a.price - b.price);
+            break;
+          case 'price-high':
+            filtered.sort((a, b) => b.price - a.price);
+            break;
+          case 'rating':
+            filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
+            break;
+          default:
+            break;
+        }
+      }
+
+      return filtered;
     }
+    const response = await axiosInstance.get('/products', { params: filters });
+    return response.data;
   },
 
   /**
@@ -74,293 +147,155 @@ export const apiService = {
    * GET /api/products/:id
    */
   getProductById: async (productId) => {
-    try {
-      const response = await axiosInstance.get(`/products/${productId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching product:', error);
-      throw error;
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      return mockProducts.find(p => p.id === parseInt(productId));
     }
+    const response = await axiosInstance.get(`/products/${productId}`);
+    return response.data;
   },
 
-  /**
-   * Search products
-   * GET /api/products/search?query=:query
-   */
-  searchProducts: async (query) => {
-    try {
-      const response = await axiosInstance.get('/products/search', {
-        params: { query }
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error searching products:', error);
-      throw error;
+  getRelatedProducts: async (productId) => {
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      const product = mockProducts.find(p => p.id === parseInt(productId));
+      if (!product) return [];
+      return mockProducts
+        .filter(p => p.category === product.category && p.id !== product.id)
+        .slice(0, 4);
     }
-  },
-
-  // ==================== CATEGORIES ====================
-
-  /**
-   * Get all categories
-   * GET /api/categories
-   */
-  getCategories: async () => {
-    try {
-      const response = await axiosInstance.get('/categories');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching categories:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Get category by ID
-   * GET /api/categories/:id
-   */
-  getCategoryById: async (categoryId) => {
-    try {
-      const response = await axiosInstance.get(`/categories/${categoryId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching category:', error);
-      throw error;
-    }
+    const response = await axiosInstance.get(`/products/${productId}/related`);
+    return response.data;
   },
 
   // ==================== CART ====================
 
-  /**
-   * Get user's cart
-   * GET /api/cart
-   */
   getCart: async () => {
-    try {
-      const response = await axiosInstance.get('/cart');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching cart:', error);
-      throw error;
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      return expandCartItems(getCartFromStorage());
     }
+    const response = await axiosInstance.get('/cart');
+    return response.data;
   },
 
-  /**
-   * Add item to cart
-   * POST /api/cart/add
-   */
-  addToCart: async (productId, quantity) => {
-    try {
-      const response = await axiosInstance.post('/cart/add', {
-        productId,
-        quantity
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error adding to cart:', error);
-      throw error;
+  addToCart: async (productId, quantity = 1) => {
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      const cart = getCartFromStorage();
+      const existing = cart.find(item => item.productId === productId);
+      if (existing) {
+        existing.quantity += quantity;
+      } else {
+        cart.push({ productId, quantity });
+      }
+      saveCartToStorage(cart);
+      window.dispatchEvent(new Event('cartUpdated'));
+      return { cart: expandCartItems(cart) };
     }
+    const response = await axiosInstance.post('/cart', { productId, quantity });
+    return response.data;
   },
 
-  /**
-   * Remove item from cart
-   * DELETE /api/cart/:productId
-   */
+  updateCartItem: async (productId, quantity) => {
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      const cart = getCartFromStorage();
+      const item = cart.find(i => i.productId === productId);
+      if (item) {
+        item.quantity = quantity;
+      }
+      saveCartToStorage(cart);
+      window.dispatchEvent(new Event('cartUpdated'));
+      return { cart: expandCartItems(cart) };
+    }
+    const response = await axiosInstance.put(`/cart/${productId}`, { quantity });
+    return response.data;
+  },
+
   removeFromCart: async (productId) => {
-    try {
-      const response = await axiosInstance.delete(`/cart/${productId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error removing from cart:', error);
-      throw error;
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      let cart = getCartFromStorage();
+      cart = cart.filter(item => item.productId !== productId);
+      saveCartToStorage(cart);
+      window.dispatchEvent(new Event('cartUpdated'));
+      return { cart: expandCartItems(cart) };
     }
+    const response = await axiosInstance.delete(`/cart/${productId}`);
+    return response.data;
   },
 
-  /**
-   * Update cart item quantity
-   * PUT /api/cart/:productId
-   */
-  updateCartQuantity: async (productId, quantity) => {
-    try {
-      const response = await axiosInstance.put(`/cart/${productId}`, {
-        quantity
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error updating cart:', error);
-      throw error;
+  clearCart: async () => {
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      saveCartToStorage([]);
+      window.dispatchEvent(new Event('cartUpdated'));
+      return { cart: [] };
     }
+    const response = await axiosInstance.delete('/cart');
+    return response.data;
   },
 
-  // ==================== ORDERS ====================
-
-  /**
-   * Get user's orders
-   * GET /api/orders
-   */
-  getOrders: async () => {
-    try {
-      const response = await axiosInstance.get('/orders');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching orders:', error);
-      throw error;
+  validatePromoCode: async (code) => {
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      const promo = promoCodes[code.toUpperCase()];
+      if (!promo) {
+        throw new Error('Invalid promo code');
+      }
+      return promo;
     }
+    const response = await axiosInstance.post('/cart/promo', { code });
+    return response.data;
   },
 
-  /**
-   * Get order by ID
-   * GET /api/orders/:id
-   */
-  getOrderById: async (orderId) => {
-    try {
-      const response = await axiosInstance.get(`/orders/${orderId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching order:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Create new order
-   * POST /api/orders
-   */
-  createOrder: async (orderData) => {
-    try {
-      const response = await axiosInstance.post('/orders', orderData);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating order:', error);
-      throw error;
-    }
-  },
-
-  // ==================== WISHLIST ====================
-
-  /**
-   * Get user's wishlist
-   * GET /api/wishlist
-   */
-  getWishlist: async () => {
-    try {
-      const response = await axiosInstance.get('/wishlist');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching wishlist:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Add to wishlist
-   * POST /api/wishlist/add
-   */
-  addToWishlist: async (productId) => {
-    try {
-      const response = await axiosInstance.post('/wishlist/add', {
-        productId
-      });
-      return response.data;
-    } catch (error) {
-      console.error('Error adding to wishlist:', error);
-      throw error;
-    }
-  },
-
-  /**
-   * Remove from wishlist
-   * DELETE /api/wishlist/:productId
-   */
-  removeFromWishlist: async (productId) => {
-    try {
-      const response = await axiosInstance.delete(`/wishlist/${productId}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error removing from wishlist:', error);
-      throw error;
-    }
-  },
-
-  // ==================== REVIEWS ====================
-
-  /**
-   * Get product reviews
-   * GET /api/products/:productId/reviews
-   */
   getProductReviews: async (productId) => {
-    try {
-      const response = await axiosInstance.get(`/products/${productId}/reviews`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-      throw error;
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      const product = mockProducts.find(p => p.id === parseInt(productId));
+      return product?.reviews || [];
     }
+    const response = await axiosInstance.get(`/products/${productId}/reviews`);
+    return response.data;
   },
 
-  /**
-   * Create review
-   * POST /api/products/:productId/reviews
-   */
-  createReview: async (productId, reviewData) => {
-    try {
-      const response = await axiosInstance.post(
-        `/products/${productId}/reviews`,
-        reviewData
-      );
-      return response.data;
-    } catch (error) {
-      console.error('Error creating review:', error);
-      throw error;
+  addReview: async (productId, reviewData) => {
+    if (USE_MOCK_API) {
+      await delay(API_DELAY);
+      return { success: true, message: 'Review added successfully' };
     }
+    const response = await axiosInstance.post(`/products/${productId}/reviews`, reviewData);
+    return response.data;
   },
 
   // ==================== AUTH ====================
 
-  /**
-   * User login
-   * POST /api/auth/login
-   */
   login: async (email, password) => {
-    try {
-      const response = await axiosInstance.post('/auth/login', {
-        email,
-        password
-      });
-      // Store token if provided
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-      }
-      return response.data;
-    } catch (error) {
-      console.error('Error logging in:', error);
-      throw error;
+    if (USE_MOCK_API) {
+      return { token: 'mock-token', user: { email } };
     }
+    const response = await axiosInstance.post('/auth/login', { email, password });
+    if (response.data.token) {
+      localStorage.setItem('authToken', response.data.token);
+    }
+    return response.data;
   },
 
-  /**
-   * User registration
-   * POST /api/auth/register
-   */
   register: async (userData) => {
-    try {
-      const response = await axiosInstance.post('/auth/register', userData);
-      if (response.data.token) {
-        localStorage.setItem('authToken', response.data.token);
-      }
-      return response.data;
-    } catch (error) {
-      console.error('Error registering:', error);
-      throw error;
+    if (USE_MOCK_API) {
+      return { token: 'mock-token', user: userData };
     }
+    const response = await axiosInstance.post('/auth/register', userData);
+    if (response.data.token) {
+      localStorage.setItem('authToken', response.data.token);
+    }
+    return response.data;
   },
 
-  /**
-   * User logout
-   */
   logout: () => {
     localStorage.removeItem('authToken');
   }
 };
 
-export default apiService;
+export default api;

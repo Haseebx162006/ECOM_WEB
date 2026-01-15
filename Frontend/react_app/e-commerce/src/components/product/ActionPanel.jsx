@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { api } from '../../services/api';
 import './ActionPanel.css';
 
 function ActionPanel({ 
@@ -10,6 +11,8 @@ function ActionPanel({
 }) {
   const [quantity, setQuantity] = useState(1);
   const [isAddingToCart, setIsAddingToCart] = useState(false);
+  const [errorMsg, setErrorMsg] = useState('');
+  const [successMsg, setSuccessMsg] = useState('');
 
   const handleQuantityChange = (type) => {
     if (type === 'increase' && quantity < (product.stock || 10)) {
@@ -19,10 +22,30 @@ function ActionPanel({
     }
   };
 
-  const handleAddToCart = () => {
+  const handleAddToCart = async () => {
+    setErrorMsg('');
+    setSuccessMsg('');
     setIsAddingToCart(true);
-    onAddToCart(quantity);
-    setTimeout(() => setIsAddingToCart(false), 1000);
+
+    try {
+      // Call mock API to add item to cart
+      const result = await mockAPI.addToCart(product.id, quantity);
+      
+      setSuccessMsg(result.message);
+      
+      // Call parent callback if provided
+      if (onAddToCart) {
+        onAddToCart(quantity);
+      }
+
+      // Reset success message after 2 seconds
+      setTimeout(() => setSuccessMsg(''), 2000);
+    } catch (error) {
+      setErrorMsg(error.message || 'Failed to add to cart');
+      console.error('Add to cart error:', error);
+    } finally {
+      setIsAddingToCart(false);
+    }
   };
 
   const totalPrice = (product.price || 0) * quantity;
@@ -68,11 +91,11 @@ function ActionPanel({
 
       {/* Add to Cart Button */}
       <button 
-        className={`action-btn add-to-cart ${isAddingToCart ? 'success' : ''}`}
+        className={`action-btn add-to-cart ${successMsg ? 'success' : ''}`}
         onClick={handleAddToCart}
-        disabled={product.stock <= 0}
+        disabled={product.stock <= 0 || isAddingToCart}
       >
-        {isAddingToCart ? '✓ Added to Cart' : '🛒 Add to Cart'}
+        {isAddingToCart ? '⏳ Adding...' : successMsg ? '✓ Added to Cart' : '🛒 Add to Cart'}
       </button>
 
       {/* Buy Now Button */}
@@ -92,7 +115,19 @@ function ActionPanel({
         {isInWishlist ? '❤️ In Wishlist' : '🤍 Add to Wishlist'}
       </button>
 
-      {/* Info Message */}
+      {/* Messages */}
+      {errorMsg && (
+        <div className="info-message error-msg">
+          ⚠️ {errorMsg}
+        </div>
+      )}
+
+      {successMsg && (
+        <div className="info-message success-msg">
+          ✓ {successMsg}
+        </div>
+      )}
+
       {product.stock <= 0 && (
         <div className="info-message out-of-stock-msg">
           ⚠️ This item is currently out of stock

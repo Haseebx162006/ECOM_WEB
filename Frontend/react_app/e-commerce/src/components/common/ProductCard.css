@@ -10,6 +10,11 @@
   height: 100%;
 }
 
+.product-image-wrapper {
+  display: block;
+  text-decoration: none;
+}
+
 .product-card-modern:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
@@ -136,6 +141,15 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   letter-spacing: -0.01em;
+}
+
+.product-title-link {
+  text-decoration: none;
+  color: inherit;
+}
+
+.product-title-link:hover .product-title {
+  color: #0066cc;
 }
 
 /* Price Section */

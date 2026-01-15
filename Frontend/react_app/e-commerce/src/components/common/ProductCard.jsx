@@ -1,8 +1,12 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { api } from '../../services/api';
 import './ProductCard.css';
 
 function ProductCard({ product, variant = 'default' }) {
   const [isWishlisted, setIsWishlisted] = useState(false);
+  const [isAddingCart, setIsAddingCart] = useState(false);
+  const [message, setMessage] = useState('');
   
   const {
     id,
@@ -15,10 +19,29 @@ function ProductCard({ product, variant = 'default' }) {
     badge
   } = product || {};
 
+  const handleAddToCart = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    setIsAddingCart(true);
+    setMessage('');
+
+    try {
+      const result = await mockAPI.addToCart(id, 1);
+      setMessage('✓ Added!');
+      
+      setTimeout(() => setMessage(''), 2000);
+    } catch (error) {
+      setMessage('❌ Failed');
+      console.error('Add to cart error:', error);
+    } finally {
+      setIsAddingCart(false);
+    }
+  };
+
   return (
     <div className="product-card-modern">
-      {/* Product Image */}
-      <div className="product-image-wrapper">
+      <Link to={`/product/${id}`} className="product-image-wrapper">
         {image ? (
           <img src={image} alt={name} className="product-img" />
         ) : (
@@ -27,10 +50,13 @@ function ProductCard({ product, variant = 'default' }) {
           </div>
         )}
         
-        {/* Wishlist Heart */}
         <button 
           className={`wishlist-heart ${isWishlisted ? 'active' : ''}`}
-          onClick={() => setIsWishlisted(!isWishlisted)}
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            setIsWishlisted(!isWishlisted);
+          }}
           aria-label="Add to wishlist"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
@@ -44,13 +70,13 @@ function ProductCard({ product, variant = 'default' }) {
         </button>
 
         {badge && <span className={`badge-modern ${badge.toLowerCase()}`}>{badge}</span>}
-      </div>
+      </Link>
 
-      {/* Product Details */}
       <div className="product-details">
-        <h3 className="product-title">{name}</h3>
+        <Link to={`/product/${id}`} className="product-title-link">
+          <h3 className="product-title">{name}</h3>
+        </Link>
         
-        {/* Price */}
         <div className="price-section">
           <span className="price-current">${price.toFixed(2)}</span>
           {originalPrice && (
@@ -58,27 +84,50 @@ function ProductCard({ product, variant = 'default' }) {
           )}
         </div>
 
-        {/* Rating and Action */}
         <div className="card-footer">
           <div className="rating-display">
             <span className="star-icon">⭐</span>
             <span className="rating-text">{rating} ({reviewCount})</span>
           </div>
           
-          {variant === 'compact' ? (
-            <button className="quick-add-btn" aria-label="Quick add to cart">
-              <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-                <path d="M10 5V15M5 10H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-              </svg>
-            </button>
-          ) : (
-            <button className="add-cart-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-              </svg>
-              Add to cart
-            </button>
-          )}
+          <div className="card-action">
+            {variant === 'compact' ? (
+              <button 
+                className="quick-add-btn" 
+                onClick={handleAddToCart}
+                disabled={isAddingCart}
+                aria-label="Quick add to cart"
+                title={message || 'Add to cart'}
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 5V15M5 10H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
+              </button>
+            ) : (
+              <button 
+                className={`add-cart-btn ${message ? 'show-message' : ''}`}
+                onClick={handleAddToCart}
+                disabled={isAddingCart}
+              >
+                {isAddingCart ? (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                      <circle cx="10" cy="10" r="8" stroke="currentColor" strokeWidth="2" fill="none" opacity="0.3"/>
+                      <path d="M10 2C5.58 2 2 5.58 2 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeDasharray="30" strokeDashoffset="0"/>
+                    </svg>
+                    Adding...
+                  </>
+                ) : (
+                  <>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                      <path d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                    {message || 'Add to cart'}
+                  </>
+                )}
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>

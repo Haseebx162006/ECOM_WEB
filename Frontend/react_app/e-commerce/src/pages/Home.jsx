@@ -1,7 +1,9 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import './Home.css';
 import ProductCard from '../components/common/ProductCard';
 import ProductMoments from '../components/home/ProductMoments';
+import Footer from '../components/layout/Footer';
 
 function Home() {
   // Sample product data
@@ -60,10 +62,10 @@ function Home() {
                 <p>Making your shopping experience come true with amazing deals!</p>
               </div>
             </div>
-            <button className="hero-button">
+            <Link to="/products" className="hero-button">
               <span>View All Products</span>
               <span className="button-arrow">→</span>
-            </button>
+            </Link>
             
             <div className="social-links">
               <span>Follow us on:</span>
@@ -94,29 +96,29 @@ function Home() {
       <section className="categories-section">
         <div className="section-header">
           <h2>Popular Categories</h2>
-          <a href="#" className="view-all-link">View All →</a>
+          <Link to="/products" className="view-all-link">View All →</Link>
         </div>
         <div className="categories-grid">
-          <div className="category-card">
+          <Link to="/products?category=Electronics" className="category-card">
             <div className="category-icon">💻</div>
             <h3>Electronics</h3>
             <p>250+ items</p>
-          </div>
-          <div className="category-card">
+          </Link>
+          <Link to="/products?category=Fashion" className="category-card">
             <div className="category-icon">👔</div>
             <h3>Fashion</h3>
             <p>180+ items</p>
-          </div>
-          <div className="category-card">
+          </Link>
+          <Link to="/products?category=Home & Garden" className="category-card">
             <div className="category-icon">🏠</div>
             <h3>Home & Garden</h3>
             <p>320+ items</p>
-          </div>
-          <div className="category-card">
+          </Link>
+          <Link to="/products?category=Sports" className="category-card">
             <div className="category-icon">⚽</div>
             <h3>Sports</h3>
             <p>145+ items</p>
-          </div>
+          </Link>
         </div>
       </section>
 
@@ -124,7 +126,7 @@ function Home() {
       <section className="featured-section">
         <div className="section-header">
           <h2>Featured Products</h2>
-          <a href="#" className="view-all-link">View All →</a>
+          <Link to="/products" className="view-all-link">View All →</Link>
         </div>
         <div className="products-grid">
           {featuredProducts.map((product) => (
@@ -132,6 +134,8 @@ function Home() {
           ))}
         </div>
       </section>
+
+      <Footer />
     </div>
   );
 }
