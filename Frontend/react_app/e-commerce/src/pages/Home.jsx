@@ -1,47 +1,35 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import './Home.css';
 import ProductCard from '../components/common/ProductCard';
 import ProductMoments from '../components/home/ProductMoments';
 import Footer from '../components/layout/Footer';
+import { api } from '../services/api';
 
 function Home() {
-  // Sample product data
-  const featuredProducts = [
-    {
-      id: 1,
-      name: 'Wireless Headphones',
-      price: 89.99,
-      originalPrice: 129.99,
-      rating: 4.8,
-      reviewCount: 234,
-      badge: 'Sale'
-    },
-    {
-      id: 2,
-      name: 'Smart Watch Pro',
-      price: 299.99,
-      rating: 4.7,
-      reviewCount: 189,
-      badge: 'New'
-    },
-    {
-      id: 3,
-      name: 'Bluetooth Speaker',
-      price: 49.99,
-      originalPrice: 79.99,
-      rating: 4.6,
-      reviewCount: 456,
-      badge: 'Trending'
-    },
-    {
-      id: 4,
-      name: 'Premium Sneakers',
-      price: 84.00,
-      rating: 4.7,
-      reviewCount: 89
-    }
-  ];
+  const [featuredProducts, setFeaturedProducts] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsData, categoriesData] = await Promise.all([
+          api.getProducts(),
+          api.getCategories()
+        ]);
+        // Take first 4 products as featured
+        setFeaturedProducts(productsData.slice(0, 4));
+        // Take first 4 categories as popular
+        setCategories(categoriesData.slice(0, 4));
+      } catch (error) {
+        console.error('Failed to load home data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
 
   return (
     <div className="home-page">
@@ -66,7 +54,7 @@ function Home() {
               <span>View All Products</span>
               <span className="button-arrow">→</span>
             </Link>
-            
+
             <div className="social-links">
               <span>Follow us on:</span>
               <a href="#" className="social-icon">🐦</a>
@@ -75,7 +63,7 @@ function Home() {
               <a href="#" className="social-icon">💼</a>
             </div>
           </div>
-          
+
           <div className="hero-right">
             <div className="hero-image-container">
               <div className="hero-image-circle">
@@ -99,26 +87,17 @@ function Home() {
           <Link to="/products" className="view-all-link">View All →</Link>
         </div>
         <div className="categories-grid">
-          <Link to="/products?category=Electronics" className="category-card">
-            <div className="category-icon">💻</div>
-            <h3>Electronics</h3>
-            <p>250+ items</p>
-          </Link>
-          <Link to="/products?category=Fashion" className="category-card">
-            <div className="category-icon">👔</div>
-            <h3>Fashion</h3>
-            <p>180+ items</p>
-          </Link>
-          <Link to="/products?category=Home & Garden" className="category-card">
-            <div className="category-icon">🏠</div>
-            <h3>Home & Garden</h3>
-            <p>320+ items</p>
-          </Link>
-          <Link to="/products?category=Sports" className="category-card">
-            <div className="category-icon">⚽</div>
-            <h3>Sports</h3>
-            <p>145+ items</p>
-          </Link>
+          {loading ? (
+            <p>Loading categories...</p>
+          ) : (
+            categories.map((category, index) => (
+              <Link key={category.id || index} to={`/products?category=${category.name || category}`} className="category-card">
+                <div className="category-icon">📦</div>
+                <h3>{category.name || category}</h3>
+                <p>Explore →</p>
+              </Link>
+            ))
+          )}
         </div>
       </section>
 
@@ -129,9 +108,13 @@ function Home() {
           <Link to="/products" className="view-all-link">View All →</Link>
         </div>
         <div className="products-grid">
-          {featuredProducts.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
+          {loading ? (
+            <p>Loading products...</p>
+          ) : (
+            featuredProducts.map((product) => (
+              <ProductCard key={product.id} product={product} />
+            ))
+          )}
         </div>
       </section>
 

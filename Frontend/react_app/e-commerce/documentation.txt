@@ -4,7 +4,7 @@ E-Commerce Website - Complete Documentation
   Table of Contents
 1.	Project Overview
 2.	System Architecture
-3.	Database Schema
+3.	app.database Schema
 4.	Module Breakdown
 5.	API Endpoints
 6.	Frontend Components
@@ -37,7 +37,7 @@ Key Features
 Tech Stack (Recommended)
 •	Frontend: React + Next js + Tailwind CSS
 •	Backend: FastAPI (Python) or Node js/Express
-•	Database: PostgreSQL
+•	app.database: PostgreSQL
 •	Payment: Stripe API / PayPal
 •	Storage: AWS S3 / Cloudinary
 •	Caching: Redis
@@ -64,10 +64,10 @@ Application Layer (Backend)
 
 •	REST API built with FastAPI or Express
 •	Handles all business logic
-•	Manages authentication and authorization
+•	Manages app.authentication and app.authorization
 •	Processes payments and orders
 
-Data Layer (Database)
+Data Layer (app.database)
 
 •	PostgreSQL for relational data
 •	Redis for caching and sessions
@@ -79,7 +79,7 @@ Data Flow
 2.	Frontend makes API calls to backend
  
 3.	Backend validates data and enforces business logic
-4.	Backend queries database and returns results
+4.	Backend queries app.database and returns results
 5.	Frontend displays data to user
 
 External Services
@@ -91,7 +91,7 @@ External Services
 
 
 
-Database Schema
+app.database Schema
 
 Core Tables Users Table
 •	Stores customer, seller, and admin accounts
@@ -182,7 +182,7 @@ Inventory/Stock Transactions Table
 
 Module Breakdown
 
-Module 1: Authentication & User Management
+Module 1: app.authentication & User Management
 Purpose: Handle user registration, login, account management
 Key Features:
 
@@ -198,7 +198,7 @@ Key Features:
 •	Seller signup —r additional seller info —r approval
 •	Admin assignment —› special permissions
 
-Database Relationships:
+app.database Relationships:
 
 •	Users table is the central hub
 •	Users linked to: orders, reviews, cart, wishlist, products (for sellers), addresses
@@ -232,7 +232,7 @@ Admin Capabilities:
 •	Monitor all products
 •	Handle disputes
 
-Database Relationships:
+app.database Relationships:
 
 •	Products —+ Categories (many-to-one)
 •	Products —• Users/Sellers (many-to-one)
@@ -270,7 +270,7 @@ Wishlist Features:
 •	Move items from wishlist to cart
 •	Receive notifications for price drops
 
-Database Relationships:
+app.database Relationships:
 
 •	Cart —r Users (one-to-many)
 •	Cart —› Products (many-to-one)
@@ -312,7 +312,7 @@ Order Statuses:
 •	Cancelled: Order cancelled by user or admin
 •	Refunded: Refund processed
 
-Database Relationships:
+app.database Relationships:
 
 •	Orders —+ Users (many-to-one)
 •	Orders —• Addresses (many-to-one, for shipping and billing)
@@ -341,7 +341,7 @@ Payment Flow:
 
 1.	User enters payment details in frontend
 2.	Frontend sends to payment provider (Stripe/PayPal)
-3.	Payment provider returns token/authorization
+3.	Payment provider returns token/app.authorization
 4.	Backend validates token with payment provider
 5.	Backend creates payment record
 6.	Backend initiates order fulfillment
@@ -355,7 +355,7 @@ Security Measures:
 •	Store payment method details securely
 •	Implement webhook verification
 
-Database Relationships:
+app.database Relationships:
 
 •	Payments —r Orders (one-to-one)
 •	Payments —› Users (many-to-one)
@@ -393,7 +393,7 @@ Moderation:
 •	Rating distribution (how many 5-star, 4-star, etc)
 •	Most helpful reviews featured
 
-Database Relationships:
+app.database Relationships:
 
 •	Reviews —+ Products (many-to-one)
 •	Reviews —› Users (many-to-one)
@@ -574,13 +574,13 @@ Customer Analytics:
 
 API Endpoints
 
-Authentication Endpoints
+app.authentication Endpoints
 •	Register new user with email verification
 •	Login with email and password
-•	Refresh authentication token
+•	Refresh app.authentication token
 •	Logout and session cleanup
 •	Password reset request
-•	Change password (authenticated users)
+•	Change password (app.authenticated users)
 •	Verify email address
 •	Update profile information
 
@@ -801,7 +801,7 @@ Product Reviews Page
 
 •	Sort reviews by helpful, recent, highest rated
 •	Filter by rating (5 stars, 4 stars, etc)
-•	Review cards: rating, title, comment, author, date
+•	Review cards: rating, title, comment, app.author, date
 •	Helpful/unhelpful voting buttons
 •	Write review button (if customer)
 •	Photo reviews display
@@ -964,8 +964,8 @@ Security:
 PayPal Integration (Optional)
 Alternative payment method:
 
-•	User is redirected to PayPal for authentication
-•	PayPal returns authorization token
+•	User is redirected to PayPal for app.authentication
+•	PayPal returns app.authorization token
 •	Backend exchanges token for payment confirmation
 •	Order created upon successful payment
 
@@ -1047,8 +1047,8 @@ Settings
  
 Security Considerations
 
-Authentication & Authorization
-•	Use JWT tokens for API authentication
+app.authentication & app.authorization
+•	Use JWT tokens for API app.authentication
 •	Implement role-based access control (customer, seller, admin)
 •	Secure password hashing with bcrypt
 •	Email verification for new accounts
@@ -1080,13 +1080,13 @@ Multi-Vendor Security
 •	Sellers can only modify their own products
 •	Sellers can only see their own orders and payouts
 •	Admins have access to all data
-•	Database-level access control
+•	app.database-level access control
 
 
 Infrastructure Security
 •	HTTPS/TLS for all communications
 •	Environment variables for secrets
-•	Database password rotation
+•	app.database password rotation
 •	Regular security audits
 •	Backup and disaster recovery
 •	Monitoring and logging
@@ -1101,13 +1101,13 @@ Backend Setup (FastAPI) Local Development:
 1.	Create project directory and virtual environment
 2.	Install dependencies (FastAPI, SQLAlchemy, psycopg2, Stripe SDK, etc)
  
-3.	Create database and run migrations
+3.	Create app.database and run migrations
 4.	Set up environment variables
 5.	Start development server with auto-reload
 6.	Test endpoints with Swagger UI
 
-Database Setup:
-1.	Create PostgreSQL database
+app.database Setup:
+1.	Create PostgreSQL app.database
 2.	Create tables with proper relationships
 3.	Create indexes for performance
 4.	Set up backup strategy
@@ -1115,7 +1115,7 @@ Database Setup:
 Configuration:
 
 •	Environment variables for API keys (Stripe, AWS, email service)
-•	Database connection string
+•	app.database connection string
 •	CORS settings for frontend domain
 •	JWT secret key
 •	File upload configuration
@@ -1161,12 +1161,12 @@ Deployment Frontend (Vercel):
 Backend (Railway/Render):
 
 •	Connect GitHub repository
-•	Create PostgreSQL database
+•	Create PostgreSQL app.database
 •	Set environment variables
 •	Automatic deployment on push
 •	Domain and SSL setup
 
-Database (Cloud Provider):
+app.database (Cloud Provider):
 
 •	Use managed PostgreSQL service
 •	Configure backup and replication
@@ -1186,10 +1186,10 @@ External Services:
 Development Timeline
 
 Week 1-2: Foundation
-•	Setup backend and database
+•	Setup backend and app.database
  
 •	Setup frontend project
-•	Implement authentication module
+•	Implement app.authentication module
 •	Create login/register pages
 
 Week 3-4: Product & Catalog

@@ -3,6 +3,7 @@ import './Navbar.css';
 import { Link, useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.svg';
 import { api } from '../../services/api';
+import { useAuth } from '../../auth/AuthContext';
 
 function Navbar() {
   const [showCategories, setShowCategories] = useState(false);
@@ -13,17 +14,21 @@ function Navbar() {
   const categoriesRef = useRef(null);
   const userMenuRef = useRef(null);
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
 
-  // Sample categories - will be dynamic later
-  const categories = [
-    'Electronics',
-    'Fashion',
-    'Home & Garden',
-    'Sports',
-    'Books',
-    'Beauty',
-    'Toys'
-  ];
+  const [categories, setCategories] = useState([]);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const data = await api.getCategories();
+        setCategories(data);
+      } catch (error) {
+        console.error('Failed to load categories:', error);
+      }
+    };
+    fetchCategories();
+  }, []);
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -38,7 +43,7 @@ function Navbar() {
 
     // Add event listener
     document.addEventListener('mousedown', handleClickOutside);
-    
+
     // Cleanup
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
@@ -84,22 +89,22 @@ function Navbar() {
         <Link to="/" className="logo">
           <img src={logo} alt="Logo" className="logo-image" />
         </Link>
-        
+
         {/* Categories Dropdown */}
         <div className="categories-dropdown" ref={categoriesRef}>
-          <button 
+          <button
             className="categories-button"
             onClick={() => setShowCategories(!showCategories)}
           >
             <span>☰</span>
             <span>Categories</span>
           </button>
-          
+
           {showCategories && (
             <div className="dropdown-menu">
               {categories.map((category, index) => (
-                <Link key={index} to={`/products?category=${category}`} className="dropdown-item">
-                  {category}
+                <Link key={category.id || index} to={`/products?category=${category.name || category}`} className="dropdown-item">
+                  {category.name || category}
                 </Link>
               ))}
             </div>
@@ -116,9 +121,9 @@ function Navbar() {
             setSearchQuery('');
           }
         }}>
-          <input 
-            type="text" 
-            placeholder="Search products..." 
+          <input
+            type="text"
+            placeholder="Search products..."
             className="search-input"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
@@ -132,34 +137,49 @@ function Navbar() {
       {/* Right Section - Icons and User */}
       <div className="navbar-right">
         {/* Wishlist Icon */}
-        <button className="icon-button" title="Wishlist">
+        {/* Wishlist Icon */}
+        <Link to="/wishlist" className="icon-button" title="Wishlist">
           <span>❤️</span>
-        </button>
-        
+        </Link>
+
         {/* Cart Icon with Count */}
         <Link to="/cart" className="icon-button cart-button" title="Cart">
           <span>🛍️</span>
           {cartCount > 0 && <span className="cart-count">{cartCount}</span>}
         </Link>
-        
+
         {/* User Account Menu */}
         <div className="user-menu" ref={userMenuRef}>
-          <button 
+          <button
             className="user-profile"
             onClick={() => setShowUserMenu(!showUserMenu)}
           >
-            <span className="user-name">Guest</span>
-            <div className="user-avatar">👤</div>
+            <span className="user-name">{user ? user.name : 'Guest'}</span>
+            <div className="user-avatar">{user ? user.name.charAt(0).toUpperCase() : '👤'}</div>
           </button>
-          
+
           {showUserMenu && (
             <div className="dropdown-menu user-dropdown">
-              <a href="#" className="dropdown-item">Login</a>
-              <a href="#" className="dropdown-item">Register</a>
-              <div className="dropdown-divider"></div>
-              <a href="#" className="dropdown-item">My Orders</a>
-              <a href="#" className="dropdown-item">My Wishlist</a>
-              <a href="#" className="dropdown-item">Account Settings</a>
+              {user ? (
+                <>
+                  <div className="dropdown-item" style={{ background: '#f3f4f6', color: '#6b7280', cursor: 'default' }}>
+                    <small>Logged in as <b>{user.role}</b></small>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  {user.role === 'admin' && <Link to="/admin/dashboard" className="dropdown-item" onClick={() => setShowUserMenu(false)}>Admin Dashboard</Link>}
+                  {user.role === 'seller' && <Link to="/seller/dashboard" className="dropdown-item" onClick={() => setShowUserMenu(false)}>Seller Dashboard</Link>}
+                  {user.role === 'user' && <Link to="/dashboard" className="dropdown-item" onClick={() => setShowUserMenu(false)}>My Dashboard</Link>}
+                  <Link to="#" className="dropdown-item">My Orders</Link>
+                  <Link to="#" className="dropdown-item">My Wishlist</Link>
+                  <div className="dropdown-divider"></div>
+                  <button onClick={() => { logout(); setShowUserMenu(false); navigate('/'); }} className="dropdown-item" style={{ width: '100%', textAlign: 'left', border: 'none', background: 'none', cursor: 'pointer', color: '#dc2626' }}>Logout</button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="dropdown-item" onClick={() => setShowUserMenu(false)}>Login</Link>
+                  <Link to="/login" className="dropdown-item" onClick={() => setShowUserMenu(false)}>Register</Link>
+                </>
+              )}
             </div>
           )}
         </div>

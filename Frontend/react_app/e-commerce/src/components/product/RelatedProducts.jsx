@@ -1,6 +1,6 @@
 import { useRef, useEffect, useState } from 'react';
 import ProductCard from '../common/ProductCard';
-import { featuredProducts } from '../../data/mockData';
+import { api } from '../../services/api';
 import './RelatedProducts.css';
 
 function RelatedProducts({ currentProductId = null, category = '' }) {
@@ -8,13 +8,17 @@ function RelatedProducts({ currentProductId = null, category = '' }) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [relatedProducts, setRelatedProducts] = useState([]);
 
-  // Filter related products (same category, exclude current product)
   useEffect(() => {
-    const related = featuredProducts
-      .filter(product => product.id !== currentProductId)
-      .slice(0, 6); // Show max 6 related products
-    
-    setRelatedProducts(related);
+    const fetchRelated = async () => {
+      if (!currentProductId) return;
+      try {
+        const related = await api.getRelatedProducts(currentProductId);
+        setRelatedProducts(related);
+      } catch (error) {
+        console.error('Failed to load related products:', error);
+      }
+    };
+    fetchRelated();
   }, [currentProductId]);
 
   const handlePrevious = () => {
@@ -53,7 +57,7 @@ function RelatedProducts({ currentProductId = null, category = '' }) {
 
       <div className="related-slider-container">
         {relatedProducts.length > 4 && (
-          <button 
+          <button
             className="slider-nav prev"
             onClick={handlePrevious}
             disabled={currentIndex === 0}
@@ -72,7 +76,7 @@ function RelatedProducts({ currentProductId = null, category = '' }) {
         </div>
 
         {relatedProducts.length > 4 && (
-          <button 
+          <button
             className="slider-nav next"
             onClick={handleNext}
             disabled={currentIndex >= relatedProducts.length - 4}

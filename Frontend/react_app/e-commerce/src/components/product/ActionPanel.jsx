@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { api } from '../../services/api';
 import './ActionPanel.css';
 
-function ActionPanel({ 
-  product = {}, 
-  onAddToCart = () => {},
-  onBuyNow = () => {},
-  onWishlist = () => {},
+function ActionPanel({
+  product = {},
+  onAddToCart = () => { },
+  onBuyNow = () => { },
+  onWishlist = () => { },
   isInWishlist = false
 }) {
   const [quantity, setQuantity] = useState(1);
@@ -29,10 +29,10 @@ function ActionPanel({
 
     try {
       // Call mock API to add item to cart
-      const result = await mockAPI.addToCart(product.id, quantity);
-      
-      setSuccessMsg(result.message);
-      
+      const result = await api.addToCart(product.id, quantity);
+
+      setSuccessMsg('Added to cart');
+
       // Call parent callback if provided
       if (onAddToCart) {
         onAddToCart(quantity);
@@ -56,17 +56,17 @@ function ActionPanel({
       <div className="quantity-section">
         <label htmlFor="quantity">Quantity:</label>
         <div className="quantity-selector">
-          <button 
+          <button
             className="qty-btn"
             onClick={() => handleQuantityChange('decrease')}
             disabled={quantity <= 1}
           >
             −
           </button>
-          <input 
+          <input
             id="quantity"
-            type="number" 
-            value={quantity} 
+            type="number"
+            value={quantity}
             onChange={(e) => {
               const val = parseInt(e.target.value) || 1;
               if (val > 0 && val <= (product.stock || 10)) {
@@ -76,7 +76,7 @@ function ActionPanel({
             min="1"
             max={product.stock || 10}
           />
-          <button 
+          <button
             className="qty-btn"
             onClick={() => handleQuantityChange('increase')}
             disabled={quantity >= (product.stock || 10)}
@@ -90,7 +90,7 @@ function ActionPanel({
       </div>
 
       {/* Add to Cart Button */}
-      <button 
+      <button
         className={`action-btn add-to-cart ${successMsg ? 'success' : ''}`}
         onClick={handleAddToCart}
         disabled={product.stock <= 0 || isAddingToCart}
@@ -99,7 +99,7 @@ function ActionPanel({
       </button>
 
       {/* Buy Now Button */}
-      <button 
+      <button
         className="action-btn buy-now"
         onClick={() => onBuyNow(quantity)}
         disabled={product.stock <= 0}
@@ -108,7 +108,7 @@ function ActionPanel({
       </button>
 
       {/* Wishlist Button */}
-      <button 
+      <button
         className={`action-btn wishlist-btn ${isInWishlist ? 'active' : ''}`}
         onClick={onWishlist}
       >

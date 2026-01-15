@@ -29,7 +29,7 @@ export function useCart() {
   const handleQuantityChange = async (productId, newQuantity) => {
     try {
       const result = await api.updateCartItem(productId, newQuantity);
-      setCartItems(result.cart);
+      setCartItems(result);
     } catch (error) {
       console.error('Error updating quantity:', error);
     }
@@ -38,7 +38,7 @@ export function useCart() {
   const handleRemoveItem = async (productId) => {
     try {
       const result = await api.removeFromCart(productId);
-      setCartItems(result.cart);
+      setCartItems(result);
     } catch (error) {
       console.error('Error removing item:', error);
     }
@@ -48,7 +48,7 @@ export function useCart() {
     if (window.confirm('Are you sure you want to clear your cart?')) {
       try {
         const result = await api.clearCart();
-        setCartItems(result.cart);
+        setCartItems(result);
         setPromoCode('');
         setAppliedPromo('');
         setDiscountAmount(0);

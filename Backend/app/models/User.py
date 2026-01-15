@@ -1,4 +1,4 @@
-from database import Base
+from app.database import Base
 from sqlalchemy import Column,String,Integer,func,DateTime,Double,Float
 class User(Base):
     
@@ -18,5 +18,5 @@ class User(Base):
     
     seller_name = Column(String, nullable=True)
     seller_description = Column(String, nullable=True)
-    seller_rating = Column(float, default=0.0)
+    seller_rating = Column(Float, default=0.0)
     

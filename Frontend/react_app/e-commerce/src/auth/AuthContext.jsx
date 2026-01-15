@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
+import { api } from '../services/api';
 
 const AuthContext = createContext(null);
 
@@ -7,35 +8,38 @@ export const AuthProvider = ({ children }) => {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        // Simulate checking for a persisted user session
         const storedUser = localStorage.getItem('cartopia_user');
-        if (storedUser) {
+        const token = localStorage.getItem('authToken');
+        if (storedUser && token) {
             setUser(JSON.parse(storedUser));
         }
         setLoading(false);
     }, []);
 
-    const login = (role) => {
-        // Simple mock login logic
-        const mockUser = {
-            id: Date.now(),
-            name: `Test ${role.charAt(0).toUpperCase() + role.slice(1)}`,
-            email: `${role}@example.com`,
-            role: role
-        };
+    const login = async (email, password) => {
+        const response = await api.login(email, password);
+        if (response.access_token) {
+            localStorage.setItem('authToken', response.access_token);
+            localStorage.setItem('cartopia_user', JSON.stringify(response.user));
+            setUser(response.user);
+            return { success: true, user: response.user };
+        }
+        return { success: false };
+    };
 
-        setUser(mockUser);
-        localStorage.setItem('cartopia_user', JSON.stringify(mockUser));
-        return true;
+    const register = async (userData) => {
+        const response = await api.register(userData);
+        return response;
     };
 
     const logout = () => {
         setUser(null);
         localStorage.removeItem('cartopia_user');
+        localStorage.removeItem('authToken');
+        api.logout();
     };
 
-    const resetPassword = (email) => {
-        // Mock reset password logic
+    const resetPassword = async (email) => {
         return new Promise((resolve) => {
             setTimeout(() => {
                 console.log(`Password reset link sent to ${email}`);
@@ -45,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, resetPassword, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, register, resetPassword, loading }}>
             {!loading && children}
         </AuthContext.Provider>
     );

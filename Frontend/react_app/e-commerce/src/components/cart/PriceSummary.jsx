@@ -2,9 +2,8 @@ import './PriceSummary.css';
 
 function PriceSummary({ items, discountAmount = 0, promoCode = '' }) {
   const subtotal = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
-  const tax = subtotal * 0.1; // 10% tax
   const shippingCost = subtotal > 50 ? 0 : 9.99; // Free shipping over $50
-  const total = subtotal + tax + shippingCost - discountAmount;
+  const total = subtotal + shippingCost - discountAmount;
 
   return (
     <div className="price-summary">
@@ -13,11 +12,6 @@ function PriceSummary({ items, discountAmount = 0, promoCode = '' }) {
       <div className="summary-item">
         <span>Subtotal</span>
         <span className="amount">${subtotal.toFixed(2)}</span>
-      </div>
-
-      <div className="summary-item">
-        <span>Tax (10%)</span>
-        <span className="amount">${tax.toFixed(2)}</span>
       </div>
 
       <div className="summary-item">

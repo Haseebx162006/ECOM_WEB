@@ -1,19 +1,24 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
-from auth.config import settings
-Base=declarative_base()
 
-engine=create_engine(
-    settings.DB_URL,
-    pool_pre_ping=True, # verify the connection before using it 
-    pool_recycle=3600, # Recycle connection every Hour
-    )
+import os
 
-session_Local= sessionmaker(bind=engine,autoflush=False,autocommit=False)
+Base = declarative_base()
+
+# Use absolute path to avoid CWD issues
+DB_DIR = os.path.dirname(os.path.abspath(__file__))
+SQLALCHEMY_DATABASE_URL = f"sqlite:///{os.path.join(DB_DIR, 'cartopia.db')}"
+
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False}
+)
+
+session_Local = sessionmaker(bind=engine, autoflush=False, autocommit=False)
 
 def get_db():
-    db=session_Local()
+    db = session_Local()
     try:
         yield db
     finally:

@@ -4,14 +4,20 @@ import { api } from '../services/api';
 const buildEnrichedProduct = (product) => {
   if (!product) return null;
 
+  const imageUrl = product.image_url
+    ? (product.image_url.startsWith('http') ? product.image_url : `${import.meta.env.VITE_API_URL || 'http://localhost:8000'}${product.image_url}`)
+    : '/placeholder.jpg';
+
   return {
-    ...product,
+    name: product.name || product.description || 'Product Name',
     description:
       product.description ||
-      `Premium quality ${product.name} designed for modern users. Features cutting-edge technology and sleek design.`,
-    category: product.category || 'Electronics',
-    stock: product.stock ?? 15,
+      `Premium quality ${product.name || product.description} designed for modern users. Features cutting-edge technology and sleek design.`,
+    category: product.category?.name || product.category || 'Electronics',
+    stock: product.stock_quantity ?? 15,
     sku: product.sku || `SKU-${product.id}`,
+    price: product.price,
+    id: product.id,
     specifications:
       product.specifications || [
         { label: 'Color', value: 'Black' },
@@ -22,7 +28,7 @@ const buildEnrichedProduct = (product) => {
     images:
       product.images && product.images.length > 0
         ? product.images
-        : [product.image || '/placeholder.jpg', product.image || '/placeholder.jpg'],
+        : [imageUrl, imageUrl],
     features:
       product.features || [
         'High Quality Audio',
@@ -79,10 +85,27 @@ export function useProductDetail(productId) {
     };
 
     fetchProduct();
+    checkWishlist();
   }, [productId]);
 
-  const toggleWishlist = () => {
-    setWishlist((prev) => !prev);
+  const checkWishlist = async () => {
+    if (!productId) return;
+    try {
+      const result = await api.checkWishlistStatus(productId);
+      setWishlist(result.in_wishlist);
+    } catch {
+      // safe fail
+    }
+  };
+
+  const toggleWishlist = async () => {
+    if (!productId) return;
+    try {
+      const result = await api.toggleWishlist(productId);
+      setWishlist(result.in_wishlist);
+    } catch (err) {
+      console.error('Wishlist toggle error:', err);
+    }
   };
 
   return { product, loading, error, wishlist, toggleWishlist };

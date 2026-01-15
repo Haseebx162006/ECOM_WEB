@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../services/api';
 
-const DEFAULT_PRICE_RANGE = [0, 500];
+const DEFAULT_PRICE_RANGE = [0, 10000];
 
 export function useProductListing() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -43,7 +43,7 @@ export function useProductListing() {
   useEffect(() => {
     const categoryParam = searchParams.get('category');
     const searchParam = searchParams.get('search');
-    
+
     if (categoryParam && categoryParam !== selectedCategory) {
       setSelectedCategory(categoryParam);
       setCurrentPage(1);
@@ -51,7 +51,7 @@ export function useProductListing() {
       setSelectedCategory('All');
       setCurrentPage(1);
     }
-    
+
     if (searchParam !== null && searchParam !== searchQuery) {
       setSearchQuery(searchParam);
       setCurrentPage(1);
@@ -61,7 +61,10 @@ export function useProductListing() {
   // Derived categories
   const categories = useMemo(() => {
     const base = new Set(['All']);
-    allProducts.forEach((p) => p.category && base.add(p.category));
+    allProducts.forEach((p) => {
+      const catName = p.category?.name || p.category;
+      if (catName) base.add(catName);
+    });
     return Array.from(base);
   }, [allProducts]);
 
@@ -72,12 +75,15 @@ export function useProductListing() {
     if (searchQuery) {
       const q = searchQuery.toLowerCase();
       products = products.filter(
-        (p) => p.name.toLowerCase().includes(q) || p.description?.toLowerCase().includes(q)
+        (p) => (p.name || p.description || '').toLowerCase().includes(q)
       );
     }
 
     if (selectedCategory !== 'All') {
-      products = products.filter((p) => p.category === selectedCategory);
+      products = products.filter((p) => {
+        const pCat = p.category?.name || p.category || '';
+        return pCat.toLowerCase() === selectedCategory.toLowerCase();
+      });
     }
 
     products = products.filter(

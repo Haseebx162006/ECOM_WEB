@@ -24,7 +24,7 @@ Thumbs.db
 # Logs
 *.log
 
-# Database files (if any local)
+# app.database files (if any local)
 *.sqlite3
 
 # Byte-compiled / optimized / DLL files

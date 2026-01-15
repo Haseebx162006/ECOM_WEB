@@ -8,38 +8,26 @@ function ProductMoments() {
   const [scrollLeft, setScrollLeft] = useState(0);
   const sliderRef = useRef(null);
 
-  const moments = [
-    {
-      id: 1,
-      image: '🎧',
-      title: 'Premium Audio',
-      tagline: 'Experience crystal clear sound'
-    },
-    {
-      id: 2,
-      image: '👟',
-      title: 'Sport Collection',
-      tagline: 'Stay active in style'
-    },
-    {
-      id: 3,
-      image: '⌚',
-      title: 'Smart Watches',
-      tagline: 'Technology on your wrist'
-    },
-    {
-      id: 4,
-      image: '📱',
-      title: 'Latest Gadgets',
-      tagline: 'Innovation at your fingertips'
-    },
-    {
-      id: 5,
-      image: '🎮',
-      title: 'Gaming Gear',
-      tagline: 'Level up your experience'
-    }
-  ];
+  const [moments, setMoments] = useState([]);
+
+  useEffect(() => {
+    const fetchMoments = async () => {
+      try {
+        const categories = await import('../../services/api').then(m => m.api.getCategories());
+        // Transform categories to moments format
+        const dynamicMoments = categories.slice(0, 5).map(cat => ({
+          id: cat.id,
+          image: cat.icon || '📦',
+          title: cat.name,
+          tagline: `Explore our ${cat.name} collection`
+        }));
+        setMoments(dynamicMoments);
+      } catch (error) {
+        console.error('Failed to load moments:', error);
+      }
+    };
+    fetchMoments();
+  }, []);
 
   const handlePrevious = () => {
     setCurrentIndex((prev) => (prev === 0 ? moments.length - 1 : prev - 1));
@@ -88,18 +76,18 @@ function ProductMoments() {
 
       <div className="moments-container">
         {/* Navigation Arrows */}
-        <button 
-          className="moment-arrow moment-arrow-left" 
+        <button
+          className="moment-arrow moment-arrow-left"
           onClick={handlePrevious}
           aria-label="Previous moment"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M15 18l-6-6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
 
         {/* Slider */}
-        <div 
+        <div
           className="moments-slider"
           ref={sliderRef}
           onMouseDown={handleDragStart}
@@ -111,8 +99,8 @@ function ProductMoments() {
           onTouchEnd={handleDragEnd}
         >
           {moments.map((moment, index) => (
-            <div 
-              key={moment.id} 
+            <div
+              key={moment.id}
               className={`moment-card ${index === currentIndex ? 'active' : ''}`}
             >
               <div className="moment-image">
@@ -127,13 +115,13 @@ function ProductMoments() {
           ))}
         </div>
 
-        <button 
-          className="moment-arrow moment-arrow-right" 
+        <button
+          className="moment-arrow moment-arrow-right"
           onClick={handleNext}
           aria-label="Next moment"
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-            <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M9 18l6-6-6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
         </button>
       </div>

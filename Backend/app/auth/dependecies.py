@@ -1,15 +1,15 @@
 from datetime import datetime, timedelta
 from jose import jwt, JWTError
-from config import settings
+from app.auth.config import settings
 from fastapi import HTTPException, requests, status
 from fastapi import Depends
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
-from database import get_db
-from models.User import User
+from app.database import get_db
+from app.models.User import User
 
 
-oAuth_2_Scheme= OAuth2PasswordBearer(tokenUrl="/auth/login")
+oauth_2_Scheme= OAuth2PasswordBearer(tokenUrl="/app.auth/login")
 def create_token(data:dict, expire_time: int):
     
     to_encode= data.copy()
@@ -29,8 +29,8 @@ def create_token(data:dict, expire_time: int):
 
 
 
-def get_current_user(token:str=Depends(oAuth_2_Scheme),db:Session=Depends(get_db)):
-    credential_exception= HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="User not Authorized", headers={"WWW-Authenticate": "Bearer"})
+def get_current_user(token:str=Depends(oauth_2_Scheme),db:Session=Depends(get_db)):
+    credential_exception= HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,detail="User not authorized", headers={"WWW-Authenticate": "Bearer"})
     
     try:
         payload=jwt.decode(token=token,key=settings.SECRET_KEY,algorithms=[settings.ALGORITHM])
