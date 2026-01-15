@@ -1,4 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth/AuthContext';
 import './Navbar.css';
 import logo from '../assets/logo.svg';
 
@@ -6,6 +8,9 @@ function Navbar() {
   const [showCategories, setShowCategories] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [cartCount, setCartCount] = useState(0);
+
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   const categoriesRef = useRef(null);
   const userMenuRef = useRef(null);
@@ -104,18 +109,31 @@ function Navbar() {
             className="user-profile"
             onClick={() => setShowUserMenu(!showUserMenu)}
           >
-            <span className="user-name">Guest</span>
-            <div className="user-avatar">👤</div>
+            <span className="user-name">{user ? user.name : 'Guest'}</span>
+            <div className="user-avatar">{user ? user.name.charAt(0) : '👤'}</div>
           </button>
 
           {showUserMenu && (
             <div className="dropdown-menu user-dropdown">
-              <a href="#" className="dropdown-item">Login</a>
-              <a href="#" className="dropdown-item">Register</a>
-              <div className="dropdown-divider"></div>
-              <a href="#" className="dropdown-item">My Orders</a>
-              <a href="#" className="dropdown-item">My Wishlist</a>
-              <a href="#" className="dropdown-item">Account Settings</a>
+              {user ? (
+                <>
+                  <div className="dropdown-item user-info">
+                    <small>Logged in as <b>{user.role}</b></small>
+                  </div>
+                  <div className="dropdown-divider"></div>
+                  {user.role === 'admin' && <Link to="/admin/dashboard" className="dropdown-item">Admin Dashboard</Link>}
+                  {user.role === 'seller' && <Link to="/seller/dashboard" className="dropdown-item">Seller Dashboard</Link>}
+                  {user.role === 'user' && <Link to="/dashboard" className="dropdown-item">My Dashboard</Link>}
+                  <Link to="#" className="dropdown-item">Account Settings</Link>
+                  <div className="dropdown-divider"></div>
+                  <button onClick={() => { logout(); setShowUserMenu(false); navigate('/'); }} className="dropdown-item logout-btn">Logout</button>
+                </>
+              ) : (
+                <>
+                  <Link to="/login" className="dropdown-item" onClick={() => setShowUserMenu(false)}>Login</Link>
+                  <Link to="/login" className="dropdown-item" onClick={() => setShowUserMenu(false)}>Register</Link>
+                </>
+              )}
             </div>
           )}
         </div>

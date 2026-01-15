@@ -242,12 +242,37 @@
   .navbar {
     padding: 1rem;
   }
-  
+
   .navbar-center {
     flex: 3;
   }
-  
+
   .user-name {
     display: none;
   }
+}
+
+.logout-btn {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: #dc2626;
+  /* Red color for logout */
+  font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+  background-color: #fee2e2;
+}
+
+.user-info {
+  background-color: #f3f4f6;
+  color: #6b7280;
+  cursor: default;
+}
+
+.user-info:hover {
+  background-color: #f3f4f6;
 }
