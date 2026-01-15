@@ -1,0 +1,265 @@
+.description-section {
+  max-width: 1200px;
+  margin: 80px auto 0;
+  padding: 0 20px;
+}
+
+/* Tabs Navigation */
+.tabs-navigation {
+  display: flex;
+  gap: 20px;
+  border-bottom: 2px solid #eee;
+  margin-bottom: 40px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.tabs-navigation::-webkit-scrollbar {
+  height: 4px;
+}
+
+.tabs-navigation::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.tabs-navigation::-webkit-scrollbar-thumb {
+  background: #999;
+  border-radius: 2px;
+}
+
+.tab-btn {
+  padding: 15px 0;
+  border: none;
+  background: transparent;
+  color: #666;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+  transition: color 0.3s;
+}
+
+.tab-btn:hover {
+  color: #667eea;
+}
+
+.tab-btn.active {
+  color: #667eea;
+}
+
+.tab-btn.active::after {
+  content: '';
+  position: absolute;
+  bottom: -2px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Tab Content */
+.tabs-content {
+  animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.tab-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.tab-pane h2 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+}
+
+.tab-pane h3 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 15px;
+}
+
+/* Description Text */
+.description-text {
+  color: #555;
+  line-height: 1.8;
+  font-size: 15px;
+  margin-bottom: 20px;
+}
+
+/* Features Section */
+.features-section {
+  margin-top: 20px;
+}
+
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 15px;
+  list-style: none;
+  padding: 0;
+}
+
+.features-grid li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.feature-check {
+  color: #27ae60;
+  font-size: 18px;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+/* Specifications Table */
+.specifications-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.specifications-table tr {
+  border-bottom: 1px solid #eee;
+}
+
+.specifications-table tr:last-child {
+  border-bottom: none;
+}
+
+.spec-label {
+  padding: 15px;
+  font-weight: 700;
+  color: #333;
+  width: 30%;
+  background-color: #f9f9f9;
+}
+
+.spec-value {
+  padding: 15px;
+  color: #666;
+}
+
+/* Shipping Details */
+.shipping-details {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  margin-top: 20px;
+}
+
+.shipping-details h4 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.shipping-details ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.shipping-details li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: #555;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.shipping-details li::before {
+  content: '✓';
+  color: #27ae60;
+  font-weight: 700;
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.shipping-item,
+.return-policy,
+.warranty-info {
+  padding: 25px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  border-left: 4px solid #667eea;
+}
+
+/* No Data Message */
+.no-data {
+  text-align: center;
+  color: #999;
+  padding: 40px 20px;
+  font-size: 16px;
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+  .tab-pane h2 {
+    font-size: 20px;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .shipping-details {
+    grid-template-columns: 1fr;
+  }
+
+  .specifications-table {
+    font-size: 14px;
+  }
+
+  .spec-label,
+  .spec-value {
+    padding: 12px;
+  }
+}
+
+@media (max-width: 480px) {
+  .tabs-navigation {
+    gap: 10px;
+  }
+
+  .tab-btn {
+    padding: 12px 0;
+    font-size: 14px;
+  }
+
+  .tab-pane h2 {
+    font-size: 18px;
+  }
+
+  .description-text {
+    font-size: 14px;
+  }
+}
